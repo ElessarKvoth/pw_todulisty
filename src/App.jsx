@@ -4,10 +4,16 @@ import './App.css';
 function App() {
   const [tarefas, setTarefas] = useState([]);
   const [novaTarefa, setNovaTarefa] = useState('');
+  const [ordenacao, setOrdenacao] = useState('data'); // 'data', 'alfabetica', 'alfabetica-reversa', ou 'mais-antigo'
 
   const adicionarTarefa = () => {
     if (novaTarefa.trim() !== '') {
-      setTarefas([...tarefas, { texto: novaTarefa, concluida: false }]);
+      const nova = {
+        texto: novaTarefa,
+        concluida: false,
+        data: new Date().toISOString(),
+      };
+      setTarefas([...tarefas, nova]);
       setNovaTarefa('');
     }
   };
@@ -19,13 +25,21 @@ function App() {
   };
 
   const limparTarefas = () => {
-    setTarefas([]); // Limpa todas as tarefas
+    setTarefas([]);
   };
 
-  const concluirTarefa = (index) => {
-    const novasTarefas = [...tarefas];
-    novasTarefas[index].concluida = !novasTarefas[index].concluida; // Alterna o estado de concluída
-    setTarefas(novasTarefas);
+  const ordenarTarefas = () => {
+    const tarefasOrdenadas = [...tarefas];
+    if (ordenacao === 'alfabetica') {
+      tarefasOrdenadas.sort((a, b) => a.texto.localeCompare(b.texto));
+    } else if (ordenacao === 'alfabetica-reversa') {
+      tarefasOrdenadas.sort((a, b) => b.texto.localeCompare(a.texto));
+    } else if (ordenacao === 'data') {
+      tarefasOrdenadas.sort((a, b) => new Date(a.data) - new Date(b.data)); // Mais recente primeiro
+    } else if (ordenacao === 'mais-antigo') {
+      tarefasOrdenadas.sort((a, b) => new Date(b.data) - new Date(a.data)); // Mais antigo primeiro
+    }
+    return tarefasOrdenadas;
   };
 
   return (
@@ -44,7 +58,6 @@ function App() {
               value={novaTarefa}
               onChange={(e) => setNovaTarefa(e.target.value)}
               onKeyDown={handleKeyDown}
-              maxLength={30} // Limita o input a 30 caracteres
             />
             <button onClick={adicionarTarefa} className="add-button">
               +
@@ -53,25 +66,38 @@ function App() {
 
           <div className="task-container">
             <ul>
-              {tarefas.map((tarefa, index) => (
+              {ordenarTarefas().map((tarefa, index) => (
                 <li key={index} className="task-item">
                   <span className={`task-text ${tarefa.concluida ? 'concluida' : ''}`}>
                     {tarefa.texto}
                   </span>
-                  <button
-                    onClick={() => concluirTarefa(index)}
-                    className="concluir-button"
-                  >
-                    ✓
-                  </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          <button onClick={limparTarefas} className="clear-button">
-            Limpar Tarefas
-          </button>
+          <div className="ordenacao-container">
+            <label htmlFor="ordenacao-select" className="ordenacao-label">
+              Ordenar:
+            </label>
+            <select
+              id="ordenacao-select"
+              value={ordenacao}
+              onChange={(e) => setOrdenacao(e.target.value)}
+              className="ordenacao-select"
+            >
+              <option value="data">Mais Recente</option>
+              <option value="mais-antigo">Mais Antigo</option>
+              <option value="alfabetica">Ordem Alfabética</option>
+              <option value="alfabetica-reversa">Alfabeto Reverso</option>
+            </select>
+          </div>
+
+          <div className="actions-container">
+            <button onClick={limparTarefas} className="clear-button">
+              Limpar Tarefas
+            </button>
+          </div>
         </div>
       </div>
 
